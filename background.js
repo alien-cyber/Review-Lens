@@ -12,7 +12,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .then(response => response.text())
       .then(data => {
         console.log(data);
-        sendResponse({ reviews:String(data) });
+        sendResponse({ reviews:data });
       })
       .catch(error => {
         console.error("Error fetching reviews:", error);
