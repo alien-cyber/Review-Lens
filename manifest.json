@@ -6,15 +6,31 @@
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": [
-    "activeTab",
-    "scripting",
-    "storage"
-  ],
+"permissions": [
+  "activeTab",
+  "scripting",
+  "storage",
+  "declarativeNetRequest"
+]
+,
   "host_permissions": [
-    "*://*/*"
+    "*://*/*",
+     "file:///*"
   ],
   "action": {
     "default_popup": "popup.html"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "web_accessible_resources": [
+  {
+    "resources": [
+      "libs/tfjs/*.js",
+      "libs/use/*.js"
+    ],
+    "matches": ["<all_urls>"]
   }
+]
+
 }

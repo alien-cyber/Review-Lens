@@ -8,14 +8,17 @@ chrome.runtime.sendMessage({ action: "fetchReviews", url: window.location.href }
 
   
     // const review_data=doc.querySelectorAll('div .a-section .a-spacing-none .reviews-content .a-size-base"');
-    const reviewTitles = Array.from(doc.querySelectorAll('div.a-section .celwidget span[data-hook="review-title"]'), element => element.textContent);
-    const starRatings = Array.from(doc.querySelectorAll('i[data-hook="review-star-rating"] span.a-icon-alt'), element => element.textContent);
-    const reviewContents = Array.from(doc.querySelectorAll('span[data-hook="review-body"]'), element => element.textContent);
+    
+    const reviewContents = Array.from(doc.querySelectorAll('span[data-hook="review-body"]'), element => element.textContent.trim().replace(/\n/g, ' '));
     
       
-      console.log("Review Title:",reviewTitles);
-      console.log("Review Rating:", starRatings);
-      console.log("Review Content:", reviewContents);
+   
+
+      
+    chrome.runtime.sendMessage({type:'data', data: reviewContents }, (response) => {
+     
+});
+      
     
 
   

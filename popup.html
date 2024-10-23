@@ -1,9 +1,33 @@
 <!DOCTYPE html>
 <html>
-  <head><title>Amazon Review Fetcher</title></head>
+  <head><title>Amazon Review Fetcher</title>
+    <script src="libs/tfjs/tf.min.js"></script>
+    <script src="libs/tfjs/use.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    
+  </head>
   <body>
     <button id="fetchReviews">Fetch Reviews</button>
     <div id="output"></div>
-    <script src="popup.js"></script>
+ 
+      <div class="chat-container">
+          <div class="chat-header">
+              <h3>Chat with Us</h3>
+          </div>
+          <div class="chat-body" id="chatBody">
+              <!-- Messages will be dynamically added here -->
+          </div>
+          <div class="chat-footer">
+              <input type="text" id="messageInput" placeholder="Type your message..." />
+              <button id="sendMessageButton">Send</button>
+          </div>
+      </div>
+  
+     
+
+    
   </body>
+ <script src="popup.js"></script>
+
+
 </html>
