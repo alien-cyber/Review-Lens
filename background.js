@@ -1,98 +1,120 @@
-importScripts('libs/tfjs/tf.es2017.js');
-importScripts('libs/use/use.min.js');
+importScripts('libs/tf.es2017.js'); 
+importScripts('libs/universal-sentence-encoder@1.3.3.js'); 
 
 
-let data=[];
-
-  loadModel();  
-
+let data = [];
+let model = null;
 
 console.log("Background script is running");
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log("Received message:", request);
-  if (request.action === "fetchReviews") {
-    fetch(request.url, {
-      method: "GET",
-      headers: {
-        "User-Agent": "Chrome/117.0.5938.132"
-      }
-    })
-      .then(response => response.text())
-      .then(data => {
-        console.log(data);
-        sendResponse({ reviews:data });
-      })
-      .catch(error => {
-        console.error("Error fetching reviews:", error);
-        sendResponse({ error: "Failed to fetch reviews." });
-      });
-  
-    // Return true to indicate sendResponse will be called asynchronously
-    return true;
-  }
-  
-});
+// Load the Universal Sentence Encoder model
+async function loadModel() {
+    try {
+        model = await use.load();
+        console.log('Model loaded');
+    } catch (error) {
+        console.error('Error loading model:', error);
+    }
+}
+
+// Function to embed a sentence or text using Universal Sentence Encoder
+async function embedText(text) {
+    try {
+        const embeddings = await model.embed([text]);
+        return embeddings.arraySync();
+    } catch (error) {
+        console.error('Error embedding text:', error);
+        return [];
+    }
+}
+
+// Function to compute cosine similarity between two vectors
+function cosineSimilarity(A, B) {
+    const dotProduct = A.map((val, idx) => val * B[idx]).reduce((a, b) => a + b, 0);
+    const magnitudeA = Math.sqrt(A.map(val => val * val).reduce((a, b) => a + b, 0));
+    const magnitudeB = Math.sqrt(B.map(val => val * val).reduce((a, b) => a + b, 0));
+    return dotProduct / (magnitudeA * magnitudeB);
+}
+
+let precomputedEmbeddings = null;
+
+async function getRelevantSentences(prompt) {
+    if (!model) {
+        await loadModel();
+    }
+
+    console.log('model started', prompt);
+    const promptEmbedding = await embedText(prompt);
+    console.log('embedded text');
+
+    if (!promptEmbedding.length) return [];
+
+    // Precompute embeddings for the data if not already done
+    if (!precomputedEmbeddings) {
+        precomputedEmbeddings = await Promise.all(
+            data.map(async (sentence) => ({
+                sentence,
+                embedding: await embedText(sentence)
+            }))
+        );
+        console.log('Precomputed embeddings');
+    }
+
+    let similarities = [];
+    for (const { sentence, embedding } of precomputedEmbeddings) {
+        if (!embedding.length) continue;
+
+        const similarity = cosineSimilarity(promptEmbedding[0], embedding[0]);
+        console.log('similarity found');
+
+        similarities.push({ sentence, similarity });
+    }
+
+    // Sort the sentences by their similarity score
+    similarities.sort((a, b) => b.similarity - a.similarity);
+    console.log(similarities.slice(0, 3).map(item => item.sentence));
+
+    // Return the top 3 relevant sentences
+    return similarities.slice(0, 3).map(item => item.sentence);
+}
 
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === "data") {
-      data=request.data;
-      console.log(data);
-      
-  } 
-  return true;
-  });
-  
-  let model;
+// Unified message listener
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+    if (request.action === "fetchReviews") {
+        console.log('Fetching reviews from:', request.url);
+        fetch(request.url, {
+            method: "GET",
+            headers: { 
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.5938.132 Safari/537.36",
+                "Referer": "https://www.amazon.in/",
+                "Accept-Language": "en-US,en;q=0.9"
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(reviewData => {
+            console.log("Fetched review data:", reviewData);
+            sendResponse({ reviews: reviewData });
+        })
+        .catch(error => {
+            console.error("Error fetching reviews:", error);
+            sendResponse({ error: "Failed to fetch reviews." });
+        });
 
-  // Load the Universal Sentence Encoder model
-  async function loadModel() {
-      model = await use.load();
-      console.log('Model loaded');
-  }
-  
-  // Function to embed a sentence or text using Universal Sentence Encoder
-  async function embedText(text) {
-      const embeddings = await model.embed([text]);
-      return embeddings.arraySync();
-  }
-  
-  // Function to compute cosine similarity between two vectors
-  function cosineSimilarity(A, B) {
-      const dotProduct = A.map((val, idx) => val * B[idx]).reduce((a, b) => a + b, 0);
-      const magnitudeA = Math.sqrt(A.map(val => val * val).reduce((a, b) => a + b, 0));
-      const magnitudeB = Math.sqrt(B.map(val => val * val).reduce((a, b) => a + b, 0));
-      return dotProduct / (magnitudeA * magnitudeB);
-  }
-  
-  // Function to collect text input and return relevant sentences
-  async function getRelevantSentences(prompt) {
-      const promptEmbedding = await embedText(prompt);
-      let similarities = [];
-  
-      for (const sentence of data) {
-          const sentenceEmbedding = await embedText(sentence);
-          const similarity = cosineSimilarity(promptEmbedding[0], sentenceEmbedding[0]);
-          similarities.push({ sentence, similarity });
-      }
-  
-      // Sort the sentences by their similarity score
-      similarities.sort((a, b) => b.similarity - a.similarity);
-  
-      // Return the top 3 relevant sentences
-      return similarities.slice(0, 3).map(item => item.sentence);
-  }
+        return true; // Indicate asynchronous response
+    }
 
-  chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+    
     if (request.action === 'processMessage') {
-        const prompt = request.prompt;
+        const prompt = request.message;
 
         try {
-            // Get the relevant sentences using the prompt
             const relevantSentences = await getRelevantSentences(prompt);
-            
-            // Send the relevant sentences back to popup.js
             sendResponse({ relevantSentences });
         } catch (error) {
             console.error('Error processing the message:', error);
@@ -100,6 +122,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }
     }
 
-    // Returning true to indicate the response is asynchronous
-    return true;
+    return true; // Indicate asynchronous response
 });
+
+// Initialize the model on script load
+loadModel();
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === "data") {
+      data=request.data;
+      console.log('dataup',data);
+      
+  } 
+  return true;
+  });

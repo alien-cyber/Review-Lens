@@ -5,32 +5,30 @@
   
   "background": {
     "service_worker": "background.js"
+ 
   },
-"permissions": [
-  "activeTab",
-  "scripting",
-  "storage",
-  "declarativeNetRequest"
-]
-,
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "declarativeNetRequest"
+  ],
   "host_permissions": [
-    "*://*/*",
-     "file:///*"
+    "<all_urls>"
   ],
   "action": {
     "default_popup": "popup.html"
   },
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
+ "content_security_policy": {
+    "extension_pages": "script-src 'self' ; object-src 'self'"
   },
   "web_accessible_resources": [
-  {
-    "resources": [
-      "libs/tfjs/*.js",
-      "libs/use/*.js"
-    ],
-    "matches": ["<all_urls>"]
-  }
-]
-
+    {
+      "resources": [
+      
+        "libs"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
