@@ -125,12 +125,28 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     return true; // Indicate asynchronous response
 });
 
+
+async function embed_check(){
+    if (!model) {
+       await loadModel();
+   }
+   if (!precomputedEmbeddings) {
+    precomputedEmbeddings = await Promise.all(
+        data.map(async (sentence) => ({
+            sentence,
+            embedding: await embedText(sentence)
+        }))
+    );
+    console.log('Precomputed embeddings');
+}
+}
 // Initialize the model on script load
 loadModel();
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "data") {
       data=request.data;
       console.log('dataup',data);
+      embed_check();
       
   } 
   return true;
