@@ -41,9 +41,17 @@ async function botResponse() {
     
     // Send the message to background.js to get relevant sentences
     const relevantSentences = await sendMessageToBackground(message);
-    
+    const session = await ai.languageModel.create({
+      systemPrompt: "You are a product review expert.Give relevant answer to the question asked by seeing the products review"
+    });
+ const result = await session.prompt(`
+  question: ${message},
+  reviews: ${relevantSentences.join("<br>")}
+`);
+
     // Display the bot's response
-    appendMessage(relevantSentences.join("<br>"), 'bot');
+    
+    appendMessage(result, 'bot');
 }
 
 // Function to send message to background.js and get processed sentences
@@ -67,7 +75,7 @@ sendMessageButton.addEventListener('click', function () {
   if (message !== '') {
       appendMessage(message, 'user');
       messageInput.value = '';  // Clear input field
-      setTimeout(botResponse, 1000);  // Simulate a bot response after 1 second
+      botResponse();;  // Simulate a bot response after 1 second
   }
 });
 
