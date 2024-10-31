@@ -33,6 +33,10 @@ window.onload = () => {
   
 };
 let session = null;
+session = await ai.languageModel.create({
+  systemPrompt: "You are a product review expert.Give relevant answer to the question asked by seeing the products review"
+});
+
 
 document.addEventListener('DOMContentLoaded', function () {
 const chatBody = document.getElementById('chatBody');
@@ -43,10 +47,12 @@ const sendMessageButton = document.getElementById('sendMessageButton');
 async function appendMessage_bot(content, sender) {
   const messageDiv = document.createElement('div');
   messageDiv.classList.add('message', sender);
-
-  const session = await ai.languageModel.create({
-    systemPrompt: "You are a product review expert.Give relevant answer to the question asked by seeing the products review"
-  });
+     if(session==null){
+      session = await ai.languageModel.create({
+        systemPrompt: "You are a product review expert.Give relevant answer to the question asked by seeing the products review"
+      });
+     }
+  
     const result = await session.promptStreaming(`
 question: ${message},
 reviews: ${content}
