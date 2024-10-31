@@ -32,10 +32,7 @@ window.onload = () => {
   
   
 };
-let session = null;
-session = await ai.languageModel.create({
-  systemPrompt: "You are a product review expert.Give relevant answer to the question asked by seeing the products review"
-});
+
 
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -47,11 +44,13 @@ const sendMessageButton = document.getElementById('sendMessageButton');
 async function appendMessage_bot(content, sender) {
   const messageDiv = document.createElement('div');
   messageDiv.classList.add('message', sender);
-     if(session==null){
-      session = await ai.languageModel.create({
-        systemPrompt: "You are a product review expert.Give relevant answer to the question asked by seeing the products review"
+     
+      const session = await ai.languageModel.create({
+        systemPrompt: `You are a product review expert.Give relevant answer to the question asked by seeing the products review.
+Give the response as short as 2-3 lines 
+Do not add extra infromation,If you don not find relevent answer from the reviews say "It is not mentioned in the reviews".`
       });
-     }
+     
   
     const result = await session.promptStreaming(`
 question: ${message},
@@ -66,21 +65,24 @@ for await (const chunk of result) {
  
   
   chatBody.scrollTop = chatBody.scrollHeight; 
+  session.destroy();
 }
 
 // Simulating a bot response
 async function botResponse() {
-     
-    
-    // Send the message to background.js to get relevant sentences
-    const relevantSentences = await sendMessageToBackground(message);
-    console.log(relevantSentences);
-   
+  // Send the message to background.js to get relevant sentences
+  const relevantSentences = await sendMessageToBackground(message);
+  
+  if (relevantSentences.length === 0) {
+      appendMessage('It is not mentioned in the reviews', 'bot');
+  } else {
+      console.log(relevantSentences);
 
-    // Display the bot's response
-    
-    appendMessage_bot(relevantSentences.join("<br>"), 'bot');
+      // Display the bot's response
+      appendMessage_bot(relevantSentences.join('. '), 'bot');
+  }
 }
+
 
 // Function to send message to background.js and get processed sentences
 function sendMessageToBackground(userMessage) {

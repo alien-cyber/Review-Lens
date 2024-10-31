@@ -75,16 +75,17 @@ async function getRelevantSentences(prompt) {
 
     // Sort the sentences by their similarity score
     similarities.sort((a, b) => b.similarity - a.similarity);
-    console.log(similarities.slice(0, 3).map(item => item.sentence));
+    console.log(similarities.slice(0, 5).map(item => item.sentence));
 
     // Return the top 3 relevant sentences
-    return similarities.slice(0, 3).map(item => item.sentence);
+    return similarities.slice(0, 5).map(item => item.sentence);
 }
 
 
 // Unified message listener
 chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     if (request.action === "fetchReviews") {
+        precomputedEmbeddings=null;
         console.log('Fetching reviews from:', request.url);
         
         let headers = {
@@ -113,7 +114,7 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
                 pageParam = "page";
             }
 
-            for (let page = 2; page <= maxPages; page++) {
+            for (let page = 1; page <= maxPages; page++) {
                 const pageUrl = `${url}&${pageParam}=${page}`;
                 console.log(`Fetching page ${page} from: ${pageUrl}`);
                 
