@@ -14,7 +14,7 @@
     "declarativeNetRequest"
   ],
   "host_permissions": [
-    "*://www.amazon.in/*/dp/*"
+    "<all_urls>"
   ],
   "action": {
     "default_popup": "popup.html"

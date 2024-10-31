@@ -4,18 +4,32 @@ let message;
 
 window.onload = () => {
 
-    // Get the active tab
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const activeTab = tabs[0];
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const activeTab = tabs[0];
+    const url = activeTab.url;
+    let shouldInjectScript = false;
 
-      // Inject the content script into the active tab
-      chrome.scripting.executeScript({
-        target: { tabId: activeTab.id },
-        files: ['content.js']
-      }, () => {
-        console.log("Content script injected");
-      });
-    });
+    // Check if the URL is a product page for each specific domain
+    if ((url.includes("amazon.in") || url.includes("amazon.com")) && url.includes("/dp/")) {
+        shouldInjectScript = true;
+    } else if (url.includes("flipkart.com") && url.includes("/p/")) {
+        shouldInjectScript = true;
+    } 
+
+    // Inject content script only if the flag is set to true
+    if (shouldInjectScript) {
+        chrome.scripting.executeScript({
+            target: { tabId: activeTab.id },
+            files: ['content.js']
+        }, () => {
+            console.log("Content script injected on product page");
+        });
+    } else {
+        console.log("Content script not injected, not a product page or URL does not match.");
+    }
+});
+
+  
   
 };
 let session = null;
