@@ -75,10 +75,10 @@ async function getRelevantSentences(prompt) {
 
     // Sort the sentences by their similarity score
     similarities.sort((a, b) => b.similarity - a.similarity);
-    console.log(similarities.slice(0, 5).map(item => item.sentence));
+    console.log(similarities.slice(0, 4).map(item => item.sentence));
 
     // Return the top 3 relevant sentences
-    return similarities.slice(0, 5).map(item => item.sentence);
+    return similarities.slice(0, 4 ).map(item => item.sentence);
 }
 
 

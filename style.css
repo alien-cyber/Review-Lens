@@ -11,8 +11,8 @@ body {
 }
 
 .chat-container {
-    width: 420px;
-    height: 640px;
+    width: 380px;
+    height: 400px; /* Reduced height */
     background-color: #ffffff;
     border-radius: 16px;
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
@@ -22,13 +22,15 @@ body {
     transition: box-shadow 0.3s ease;
 }
 
+
 /* Chat Header */
+
 .chat-header {
     background: linear-gradient(135deg, #ff8a65, #ff6ec4);
     color: #ffffff;
-    padding: 20px;
+    padding: 10px; /* Reduced padding */
     text-align: center;
-    font-size: 22px;
+    font-size: 18px; /* Smaller font size */
     font-weight: bold;
     border-top-left-radius: 16px;
     border-top-right-radius: 16px;
@@ -36,6 +38,7 @@ body {
     text-transform: uppercase;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
+
 
 /* Chat Body */
 .chat-body {

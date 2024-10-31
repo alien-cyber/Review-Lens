@@ -47,8 +47,9 @@ async function appendMessage_bot(content, sender) {
      
       const session = await ai.languageModel.create({
         systemPrompt: `You are a product review expert.Give relevant answer to the question asked by seeing the products review.
-Give the response as short as 2-3 lines 
-Do not add extra infromation,If you don not find relevent answer from the reviews say "It is not mentioned in the reviews".`
+Give the response as short as 2-3 lines.For the answers which require  large answers such as for to explain the issues or to give the list of issues,you can extend the answer  
+,If you do not find the   answer from the reviews say "It is not mentioned in the reviews"
+.`
       });
      
   
