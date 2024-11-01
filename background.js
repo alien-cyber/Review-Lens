@@ -7,11 +7,14 @@ let model = null;
 
 console.log("Background script is running");
 
+
+
 // Load the Universal Sentence Encoder model
 async function loadModel() {
     try {
         model = await use.load();
         console.log('Model loaded');
+        
     } catch (error) {
         console.error('Error loading model:', error);
     }
@@ -36,7 +39,9 @@ function cosineSimilarity(A, B) {
     return dotProduct / (magnitudeA * magnitudeB);
 }
 
-let precomputedEmbeddings = null;
+let precomputedEmbeddings = []; // Store computed embeddings progressively
+let embeddingInProgress = false;
+const batchSize = 10; // Define batch size
 
 async function getRelevantSentences(prompt) {
     if (!model) {
@@ -44,48 +49,67 @@ async function getRelevantSentences(prompt) {
     }
 
     console.log('model started', prompt);
-    const promptEmbedding = await embedText(prompt);
+    const promptEmbedding = await embedText(prompt); // Embed prompt only once
     console.log('embedded text');
 
     if (!promptEmbedding.length) return [];
 
-    // Precompute embeddings for the data if not already done
-    if (!precomputedEmbeddings) {
-        precomputedEmbeddings = await Promise.all(
-            data
-                .filter(sentence => sentence !== undefined && sentence !== "")
-                .map(async (sentence) => ({
-                    sentence,
-                    embedding: await embedText(sentence)
-                }))
-        );
-        console.log('Precomputed embeddings');
+    // Initialize embedding process if not started
+    if (!embeddingInProgress && precomputedEmbeddings.length < data.length) {
+        embeddingInProgress = true;
+        precomputeInBatches(data, batchSize); // Start embedding in batches
     }
-    
 
-    let similarities = [];
-    for (const { sentence, embedding } of precomputedEmbeddings) {
-        if (!embedding.length) continue;
+    // Wait for initial embeddings to be ready
+    await waitForInitialEmbeddings(batchSize);
 
+    // Calculate similarities using available embeddings
+    let similarities = precomputedEmbeddings.map(({ sentence, embedding }) => {
         const similarity = cosineSimilarity(promptEmbedding[0], embedding[0]);
-        console.log('similarity found');
+        return { sentence, similarity };
+    });
 
-        similarities.push({ sentence, similarity });
-    }
-
-    // Sort the sentences by their similarity score
+    // Sort the sentences by similarity score and get top results
     similarities.sort((a, b) => b.similarity - a.similarity);
     console.log(similarities.slice(0, 4).map(item => item.sentence));
 
-    // Return the top 3 relevant sentences
-    return similarities.slice(0, 4 ).map(item => item.sentence);
+    // Return top 4 relevant sentences
+    return similarities.slice(0, 4).map(item => item.sentence);
+}
+
+// Batch embedding function that progressively adds embeddings to the array
+async function precomputeInBatches(data, batchSize) {
+    for (let i = precomputedEmbeddings.length; i < data.length; i += batchSize) {
+        const batch = data.slice(i, i + batchSize).filter(sentence => sentence!==undefined && sentence!=='');
+        const embeddedBatch = await Promise.all(
+            batch.map(async (sentence) => ({
+                sentence,
+                embedding: await embedText(sentence)
+            }))
+        );
+
+        precomputedEmbeddings.push(...embeddedBatch);
+        console.log(`Precomputed ${precomputedEmbeddings.length} embeddings`);
+
+        // If enough embeddings are ready, stop and continue in background
+        if (precomputedEmbeddings.length >= batchSize) break;
+    }
+
+    embeddingInProgress = false; // Mark as complete if all data is embedded
+}
+
+// Wait function to ensure at least one batch is available for processing
+async function waitForInitialEmbeddings(batchSize) {
+    while (precomputedEmbeddings.length < batchSize && embeddingInProgress) {
+        await new Promise(resolve => setTimeout(resolve, 50)); // Short wait
+    }
 }
 
 
 // Unified message listener
 chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     if (request.action === "fetchReviews") {
-        precomputedEmbeddings=null;
+        precomputedEmbeddings=[];
         console.log('Fetching reviews from:', request.url);
         
         let headers = {
@@ -183,17 +207,11 @@ async function embed_check() {
     if (!model) {
         await loadModel();
     }
-    if (!precomputedEmbeddings) {
-        precomputedEmbeddings = await Promise.all(
-            data
-                .filter(sentence => sentence !== undefined && sentence !== "")
-                .map(async (sentence) => ({
-                    sentence,
-                    embedding: await embedText(sentence)
-                }))
-        );
-        console.log('Precomputed embeddings');
+    if (!embeddingInProgress && precomputedEmbeddings.length < data.length) {
+        embeddingInProgress = true;
+        precomputeInBatches(data, batchSize); // Start embedding in batches
     }
+
 }
 
 // Initialize the model on script load

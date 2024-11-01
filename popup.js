@@ -1,8 +1,8 @@
 
-
 let message;
 
 window.onload = () => {
+   
 
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const activeTab = tabs[0];
@@ -61,11 +61,12 @@ messageDiv.textContent = "Generating response...";
 chatBody.appendChild(messageDiv);
 for await (const chunk of result) {
   messageDiv.innerText = chunk;
+  chatBody.scrollTop = chatBody.scrollHeight;
+
 }
 
  
   
-  chatBody.scrollTop = chatBody.scrollHeight; 
   session.destroy();
 }
 
