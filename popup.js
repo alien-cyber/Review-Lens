@@ -158,10 +158,17 @@ tabButtons.forEach(button => {
 
 
 
+
+
 document.addEventListener('DOMContentLoaded', function (){
     const chatBody_write = document.getElementById('chatBody-write');
     const messageInput_write = document.getElementById('messageInput-write');
     const sendMessageButton_write = document.getElementById('sendMessageButton-write');
+
+
+
+
+    
 
     sendMessageButton_write.addEventListener('click', function () {
         let message_write = messageInput_write.value.trim();
@@ -222,7 +229,11 @@ document.addEventListener('DOMContentLoaded', function (){
     chatBody_write.scr}
   }
     
-    
+  messageInput_write.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+        sendMessageButton_write.click();
+    }
+  });
     
 });
 

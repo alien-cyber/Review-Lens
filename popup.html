@@ -15,7 +15,7 @@
     
   
   
-    <div class="chat-container" id="chat">
+    <div class="chat-container active" id="chat" >
   
     
             <div class="chat-header">
@@ -37,7 +37,7 @@
   
        
       
-        <div class="chat-container" id="write"  style="display: none;">
+        <div class="chat-container" id="write">
       
         
                 <div class="chat-header">
@@ -63,6 +63,26 @@
 
     <script src="popup.js"></script>
     
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.class-container');
 
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetTab = button.getAttribute('data-tab');
+
+            // Deactivate all buttons and contents
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            // Activate the selected button and tab content
+            button.classList.add('active');
+            document.getElementById(targetTab).classList.add('active');
+        });
+    });
+});
+
+</script>
 </body>
 </html>
