@@ -173,6 +173,7 @@ document.addEventListener('DOMContentLoaded', function (){
     sendMessageButton_write.addEventListener('click', function () {
         let message_write = messageInput_write.value.trim();
        if (message_write !== '') {
+      
            appendMessage_write(message_write, 'user');
            messageInput_write.value = '';  // Clear input field
            botResponse_write(message_write);;  // Simulate a bot response after 1 second
@@ -187,7 +188,8 @@ document.addEventListener('DOMContentLoaded', function (){
             return;
         }
          else {
-        
+        console.log('MESSAGE started');
+           
       
             // Display the bot's response
             appendMessage_bot_write(message_write, 'bot');
@@ -206,34 +208,52 @@ document.addEventListener('DOMContentLoaded', function (){
 
 
 
-        let session_write=null;
+      let session_write = null;
 
-
- async function appendMessage_bot_write(content, sender) {
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message', sender);
-       
-       if(!session_write){
-    const session_write =  ai.languageModel.create({
-        systemPrompt: write_prompt
-      });}
-      let title=await get_titleBackground();
-      const result = await session_write.promptStreaming(`
-  product Description: ${title},
-  user Input: ${content}
-  `);
-  messageDiv.textContent = "Generating response...";
-  chatBody_write.appendChild(messageDiv);
-  for await (const chunk of result) {
-    messageDiv.innerText = chunk;
-    chatBody_write.scr}
-  }
-    
-  messageInput_write.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
-        sendMessageButton_write.click();
-    }
-  });
+      async function appendMessage_bot_write(content, sender) {
+          const messageDiv = document.createElement('div');
+          messageDiv.classList.add('message', sender);
+          messageDiv.textContent = "Generating response...";
+          chatBody_write.appendChild(messageDiv);
+      
+          try {
+              // Initialize session_write if not already initialized
+              if (session_write === null) {
+                  console.log('Initializing session_write...');
+                  session_write = await ai.languageModel.create({
+                      systemPrompt: write_prompt
+                  });
+              }
+      
+              // Get the title in the background
+              let title = await get_titleBackground();
+              console.log('Title retrieved:', title);
+      
+              // Get the promptStreaming result
+              const result = await session_write.promptStreaming(`
+                  product Description: ${title},
+                  user Input: ${content}
+              `);
+      
+              // Stream the response
+              for await (const chunk of result) {
+                  messageDiv.innerText = chunk;
+                  chatBody_write.scrollTop = chatBody_write.scrollHeight;  // Scroll to the latest message
+              }
+      
+          } catch (error) {
+              console.error("Error in appendMessage_bot_write:", error);
+              messageDiv.textContent = "An error occurred while generating the response.";
+          }
+      }
+      
+      // Event listener for Enter key
+      messageInput_write.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') {
+              sendMessageButton_write.click();
+          }
+      });
+      
     
 });
 
