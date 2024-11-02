@@ -3,6 +3,7 @@ importScripts('libs/universal-sentence-encoder@1.3.3.js');
 
 
 let data = [];
+let title='';
 let model = null;
 
 console.log("Background script is running");
@@ -189,6 +190,8 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     }
     if (request.action === 'processMessage') {
         const prompt = request.message;
+        
+
 
         try {
             const relevantSentences = await getRelevantSentences(prompt);
@@ -196,6 +199,21 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
         } catch (error) {
             console.error('Error processing the message:', error);
             sendResponse({ relevantSentences: [] });
+        }
+        
+    }
+    if(request.action==='getTitle'){
+        
+        
+       
+
+        try {
+             console.log('rec',title);
+           
+            sendResponse({ title });
+        } catch (error) {
+            console.error('Error processing the message:', error);
+            sendResponse({ title: '' });
         }
     }
 
@@ -219,9 +237,13 @@ loadModel();
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "data") {
       data=request.data;
+      title=request.title;
+      console.log('titkle',title);
       console.log('dataup',data);
       embed_check();
       
   } 
   return true;
   });
+
+

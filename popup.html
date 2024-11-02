@@ -1,33 +1,68 @@
 <!DOCTYPE html>
 <html>
-  <head><title>Amazon Review Fetcher</title>
-    <script src="libs/tfjs/tf.min.js"></script>
-    <script src="libs/tfjs/use.min.js"></script>
+<head>
+    <title>Amazon Review Fetcher</title>
     <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div >
+        <div class="tab-container">
+            <button class="tab-button active" data-tab="chat">Chat</button>
+            <button class="tab-button" data-tab="write">Write</button>
+        </div>
+
+
     
-  </head>
-  <body>
-   
-    <div id="output"></div>
- 
-      <div class="chat-container">
-          <div class="chat-header">
-              <h3>Chat with reviews</h3>
-          </div>
-          <div class="chat-body" id="chatBody">
-              <!-- Messages will be dynamically added here -->
-          </div>
-          <div class="chat-footer">
-              <input type="text" id="messageInput" placeholder="Type your message..." />
-              <button id="sendMessageButton">Send</button>
-          </div>
-      </div>
   
+  
+    <div class="chat-container" id="chat">
+  
+    
+            <div class="chat-header">
+                <h3>Chat with Reviews</h3>
+            </div>
+            <div class="chat-body" id="chatBody">
+                <!-- Messages will be dynamically added here -->
+            </div>
+            <div class="chat-footer">
+                <input type="text" id="messageInput" placeholder="Type your question..." />
+                <button id="sendMessageButton">Send</button>
+            </div>
+
+    </div>
+
+    
+       
+
+  
+       
+      
+        <div class="chat-container" id="write"  style="display: none;">
+      
+        
+                <div class="chat-header">
+                    <h3>write a review</h3>
+                </div>
+                <div class="chat-body" id="chatBody-write">
+                    <!-- Messages will be dynamically added here -->
+                </div>
+                <div class="chat-footer">
+                    <input type="text" id="messageInput-write" placeholder="Type here..." />
+                    <button id="sendMessageButton-write">Send</button>
+                </div>
+    
+        </div>
+    
+
+           
      
 
+</div>
+
+
+
+    <script src="popup.js"></script>
     
-  </body>
- <script src="popup.js"></script>
 
-
+</body>
 </html>
