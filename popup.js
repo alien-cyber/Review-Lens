@@ -230,16 +230,13 @@ document.addEventListener('DOMContentLoaded', function (){
               console.log('Title retrieved:', title);
       
               // Get the promptStreaming result
-              const result = await session_write.promptStreaming(`
+              const result = await session_write.prompt(`
                   product Description: ${title},
                   user Input: ${content}
               `);
       
-              // Stream the response
-              for await (const chunk of result) {
-                  messageDiv.innerText = chunk;
-                  chatBody_write.scrollTop = chatBody_write.scrollHeight;  // Scroll to the latest message
-              }
+              let output=generateReviewHelperOutput(result);
+              messageDiv.innerText = output;
       
           } catch (error) {
               console.error("Error in appendMessage_bot_write:", error);
@@ -284,17 +281,19 @@ let write_prompt=`You will be given a brief statement from a user regarding a pr
 A helpful review should fulfill two main criteria:
 1. Provides details about the product itself. This means mentioning specific aspects or qualities of the product, like its fit, comfort, material, durability, etc.
 2. Explains the user\'s opinion. This means the user gives reasons for why they like or dislike the product, or for pricing issues they explain why the price seems fair or not.
-If the review meets both of these criteria, mark it as "Helpful: Yes." Otherwise, mark it as "Helpful: No". If the review is not helpful, suggest to the user a fix for how to improve their review, and give an example review that is more helpful and applies your suggested fix. Your example review should focus solely on making the review more informative, detailed and useful to others. It should focus on the review itself, not suggest any changes to the product. If the review is helpful, leave the "Fix" and "Example" sections blank.
+
 Adhere strictly to the following output format (absolutely do NOT change the structure):
-If the user’s input provides enough information to create a helpful review, set isquestion to "No" and use review to summarize a helpful review that includes specific details about product features. Leave question blank.
+If the user’s input provides enough information to create a helpful review, set isquestion to "No" and use review to summarize a helpful review that includes specific details about product features. Leave question with empty list.
 
 If the input is too brief or lacks detail, set isquestion to "Yes" and provide a specific question to prompt the user for more information. Avoid general statements and instead ask about specific features related to the product description provided by the user.
+
+keep the review simple and include the details the user has given you
 
 Use the following format (do not change the structure):
 
 isquestion: [yes/no]
-question: [A clarifying question if necessary, otherwise leave blank]
-review: [A helpful review based on available information, or leave blank if unable to generate one]
+question: [A clarifying question if necessary, otherwise leave with empty list]
+review: [A helpful review based on available information, or leavewith empty list if unable to generate one]
 
 Examples
 Example 1:
@@ -305,7 +304,7 @@ Expected Output:
 
 isquestion: Yes
 question: Could you describe which specific features you dislike, like the design of the keyboard, key comfort, or mouse functionality?
-review:
+review:[]
 
 Example 2:
 Product Description: OnePlus Bullets Z2 Bluetooth Earphones, with 12.4 mm drivers, 10 min charge for 20 hrs music, IP55 water resistance
@@ -314,7 +313,7 @@ User Input: "Sound quality is great, but the battery dies quickly."
 Expected Output:
 
 isquestion: No
-question:
+question:[]
 review: I like its build quality but battery dies quickly which makes me charge often.
 
 Example 3:
@@ -325,7 +324,7 @@ Expected Output:
 
 isquestion: Yes
 question: Could you share more details on what you liked, such as the heart rate monitor, sleep tracking accuracy, or ease of use?
-review:
+review:[]
 
 Example 4:
 Product Description: Smartwatch with AMOLED Display, Bluetooth Calling, and Metallic Build
@@ -334,8 +333,94 @@ User Input: "Great display and build quality!"
 Expected Output:
 
 isquestion: No
-question:
+question:[]
 review: I like its display and build quality.
 
 review to write:
 `;
+
+
+
+function parseLlmResponse(response) {
+    const result = {
+      isQuestion: null,
+      question: [],
+      review: []
+    };
+  
+    const isQuestionIndex = response.indexOf('isquestion:');
+    const questionIndex = response.indexOf('question:');
+    const reviewIndex = response.indexOf('review:');
+  
+    if (isQuestionIndex === -1 || questionIndex === -1 || reviewIndex === -1) {
+      return result; // Return default if any part is missing
+    }
+  
+    // Extract isQuestion value
+    const startIndexIsQuestion = isQuestionIndex + 'isquestion:'.length;
+    const endIndexIsQuestion = response.indexOf('\n', startIndexIsQuestion);
+    const isQuestionString = response.substring(startIndexIsQuestion, endIndexIsQuestion).trim();
+    result.isQuestion = isQuestionString.toLowerCase() === 'yes';
+  
+    // Extract question content
+    const startIndexQuestion = questionIndex + 'question:'.length;
+    const endIndexQuestion = response.indexOf('\n', startIndexQuestion);
+    const questionContent = response.substring(startIndexQuestion, endIndexQuestion).trim();
+    result.question = questionContent ? questionContent.split('\n') : [];
+  
+    // Extract review content
+    const startIndexReview = reviewIndex + 'review:'.length;
+    const reviewContent = response.substring(startIndexReview).trim();
+    if(reviewContent){
+        result.review = reviewContent.split('\n');
+    }
+    else{
+        result.review = [];
+        result.isQuestion=false;
+    }
+   
+    
+    return result;
+  }
+
+  function isreviewpresent(response) {
+    const { isQuestion, question, review } = response;
+    
+    // Check if all fields are present and properly formatted
+    if (isQuestion === null || question === null || review === null) {
+      return false;
+    }
+  
+    // Scenario where response isn't useful:
+    // isQuestion: false, question: [], review: []
+    // isQuestion: false, question: [], review: ['some review content']
+    // isQuestion: false, question: ['some question'], review: []
+    if (
+      !isQuestion &&
+      (review.length === 0)
+    ) {
+      return false;
+    }
+  
+    return true;
+  }
+  
+
+  function generateReviewHelperOutput(response) {
+    const parsedResponse = parseLlmResponse(response);
+    const { isQuestion, question, review } = parsedResponse;
+    let output;
+    if (!isreviewpresent(parsedResponse)) {
+       output=question;
+       
+    }
+    
+    else{
+        output=review;
+    }
+    
+  
+  
+    return output;
+  }
+  
