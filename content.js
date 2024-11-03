@@ -14,25 +14,47 @@ chrome.runtime.sendMessage({ action: "fetchReviews", url: url }, (response) => {
 
     // Define selectors for each website
     let reviewSelector;
-    let productTitle;
-    if (url.includes("amazon.in")) {
-        reviewSelector = 'span[data-hook="review-body"]'; // Amazon.in selector
-         productTitle = document.querySelector("#productTitle").textContent.trim();
-    } else if (url.includes("amazon.com")) {
-        reviewSelector = 'span[data-hook="review-body"]'; // Amazon.com selector
-        productTitle = document.querySelector("#productTitle").textContent.trim();
-    } else if (url.includes("flipkart.com")) {
-        // Flipkart selector based on the provided HTML structure
-        reviewSelector = '.ZmyHeo > div > div';
-        productTitle = document.querySelector(".VU-ZEz").textContent.trim();
-    } 
-    // Fetch and process reviews using the selector
-    const reviewContents = Array.from(doc.querySelectorAll(reviewSelector), element => 
+let productTitle;
+let featureSelector;
+
+if (url.includes("amazon.in")) {
+    // Amazon.in selectors
+    reviewSelector = 'span[data-hook="review-body"]';
+    productTitle = document.querySelector("#productTitle")?.textContent.trim(); // Optional chaining for safety
+    featureSelector = '#featurebullets_feature_div #feature-bullets .a-unordered-list.a-vertical > li.a-spacing-mini > span.a-list-item';
+
+} else if (url.includes("amazon.com")) {
+    // Amazon.com selectors (similar to Amazon.in)
+    reviewSelector = 'span[data-hook="review-body"]';
+    productTitle = document.querySelector("#productTitle")?.textContent.trim();
+    featureSelector = '#feature-bullets .a-unordered-list.a-vertical > li.a-spacing-mini > span.a-list-item';
+
+} else if (url.includes("flipkart.com")) {
+    // Flipkart selectors
+    reviewSelector = '.ZmyHeo > div > div';
+    productTitle = document.querySelector(".VU-ZEz")?.textContent.trim();
+    featureSelector = '.xFVion > ul > li._7eSDEz'; // Define if Flipkart has a feature list selector
+}
+
+// Fetch and process reviews
+const reviewContents = Array.from(doc.querySelectorAll(reviewSelector), element => 
+    element.textContent.trim().replace(/\n/g, ' ')
+);
+
+// Fetch and process feature list (only if featureSelector is defined)
+let featureContents = [];
+if (featureSelector) {
+    featureContents = Array.from(document.querySelectorAll(featureSelector), element => 
         element.textContent.trim().replace(/\n/g, ' ')
     );
-   console.log('title_write',productTitle);
+}
+
+// Output the results
+
+
+   
     // Send the processed reviews to the background script
-    chrome.runtime.sendMessage({ type: 'data', data: reviewContents, title: productTitle }, (response) => {
+    chrome.runtime.sendMessage({ type: 'data', data: reviewContents, title: productTitle,productinfo:featureContents }, (response) => {
        
     });
   

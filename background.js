@@ -5,6 +5,7 @@ importScripts('libs/universal-sentence-encoder@1.3.3.js');
 let data = [];
 let title='';
 let model = null;
+let info='';
 
 console.log("Background script is running");
 
@@ -195,7 +196,7 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 
         try {
             const relevantSentences = await getRelevantSentences(prompt);
-            sendResponse({ relevantSentences });
+            sendResponse({ relevantSentences,title,info });
         } catch (error) {
             console.error('Error processing the message:', error);
             sendResponse({ relevantSentences: [] });
@@ -238,8 +239,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "data") {
       data=request.data;
       title=request.title;
-      console.log('titkle',title);
-      console.log('dataup',data);
+      info=request.productinfo;
+      console.log('info',info);
       embed_check();
       
   } 
