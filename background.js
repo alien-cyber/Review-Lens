@@ -242,9 +242,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       info=request.productinfo;
       console.log('info',info);
       embed_check();
+      send_trigger();
       
   } 
   return true;
   });
 
 
+ function send_trigger(){
+    chrome.runtime.sendMessage({action:'trigger'},(response)=>{});
+}

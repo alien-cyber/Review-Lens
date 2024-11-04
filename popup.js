@@ -43,6 +43,13 @@ const messageInput = document.getElementById('messageInput');
 const sendMessageButton = document.getElementById('sendMessageButton');
 let session=null;
 
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "trigger") {
+        appendMessage(message, 'user');
+         botResponse();
+    } 
+    
+    });
 
 
   
@@ -88,7 +95,7 @@ async function botResponse() {
   const {relevantSentences,title,info} = await sendMessageToBackground(message);
   
   if (relevantSentences.length === 0) {
-      appendMessage('It is not mentioned in the reviews', 'bot');
+      appendMessage('information is still fetching', 'bot');
   } else {
       console.log(relevantSentences);
 
@@ -161,7 +168,6 @@ tabButtons.forEach(button => {
         document.getElementById(targetTab).classList.add('active');
     });
 });
-
 
 
 
