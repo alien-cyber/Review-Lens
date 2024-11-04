@@ -1,5 +1,5 @@
 
-let message='mention the good,bad, pros,cons  likes,dislikes of the product';
+let message='Highlight the pros, cons, likes, dislikes, and main insights from the review';
 
 
 window.onload = () => {
