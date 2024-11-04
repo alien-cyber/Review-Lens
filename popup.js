@@ -1,5 +1,5 @@
 
-let message='Highlight the pros, cons, likes, dislikes, and main insights from the review';
+let message='Highlight the pros, cons, likes, dislikes, ';
 
 
 window.onload = () => {
@@ -58,6 +58,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function appendMessage_bot(content, sender,title,info) {
   const messageDiv = document.createElement('div');
   messageDiv.classList.add('message', sender);
+messageDiv.textContent = "Generating response...";
+
      if(session==null){
         
         session = await ai.languageModel.create({
@@ -75,7 +77,6 @@ product-info:${info},
 question: ${message},
 reviews: ${content}
 `);
-messageDiv.textContent = "Generating response...";
 chatBody.appendChild(messageDiv);
 for await (const chunk of result) {
   messageDiv.innerText = chunk;
