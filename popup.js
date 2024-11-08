@@ -1,43 +1,49 @@
 
-let message='Highlight the pros, cons, likes, dislikes, ';
+let message='you are given the pros, cons, likes, dislikes of the product tell me why to buy it and why not';
 
+let alert=true;
+document.addEventListener('DOMContentLoaded', function () {
 
-window.onload = () => {
-   
-
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    const activeTab = tabs[0];
-    const url = activeTab.url;
-    let shouldInjectScript = false;
-
-    // Check if the URL is a product page for each specific domain
-    if ((url.includes("amazon.in") || url.includes("amazon.com")) && url.includes("/dp/")) {
-        shouldInjectScript = true;
-    } else if (url.includes("flipkart.com") && url.includes("/p/")) {
-        shouldInjectScript = true;
-    } 
-
-    // Inject content script only if the flag is set to true
-    if (shouldInjectScript) {
-        chrome.scripting.executeScript({
-            target: { tabId: activeTab.id },
-            files: ['content.js']
-        }, () => {
-            console.log("Content script injected on product page");
-        });
-    } else {
-        console.log("Content script not injected, not a product page or URL does not match.");
-    }
-});
-
+window.onload=()=>{
   
 
-   
-};
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const activeTab = tabs[0];
+        const url = activeTab.url;
+        let shouldInjectScript = false;
+    
+        // Check if the URL is a product page for each specific domain
+        if ((url.includes("amazon.in") || url.includes("amazon.com")) && url.includes("/dp/")) {
+            shouldInjectScript = true;
+        } else if (url.includes("flipkart.com") && url.includes("/p/")) {
+            shouldInjectScript = true;
+        } 
+    
+        // Inject content script only if the flag is set to true
+        if (shouldInjectScript) {
+            
+    
+            chrome.scripting.executeScript({
+                target: { tabId: activeTab.id },
+                files: ['content.js']
+            }, () => {
+                console.log("Content script injected on product page");
+            });
+    
+        } else {
+            appendMessage('the POPUP works in a product page of the website', 'user');
+            console.log("Content script not injected, not a product page or URL does not match.");
+        }
+    });
+
+
+}
+    
+
+    
 
 
 
-document.addEventListener('DOMContentLoaded', function () {
 const chatBody = document.getElementById('chatBody');
 const messageInput = document.getElementById('messageInput');
 const sendMessageButton = document.getElementById('sendMessageButton');
@@ -45,19 +51,21 @@ let session=null;
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "trigger") {
-        appendMessage(message, 'user');
+        appendMessage('why to buy this product and why not', 'user');
+        appendMessage_bot('data is currently fetched please wait','user','title','info');
          botResponse();
     } 
     
     });
 
-
+    
   
 
 // Function to append messages to the chat body
 async function appendMessage_bot(content, sender,title,info) {
   const messageDiv = document.createElement('div');
-  messageDiv.classList.add('message', sender);
+  messageDiv.classList.add('message', 'bot');
+  if(sender=='bot'){
 messageDiv.textContent = "Generating response...";
 
      if(session==null){
@@ -84,7 +92,12 @@ for await (const chunk of result) {
 
 }
 
- 
+}
+else{
+messageDiv.textContent = content;
+chatBody.appendChild(messageDiv);
+    
+}
   
   
 }
@@ -96,10 +109,17 @@ async function botResponse() {
   const {relevantSentences,title,info} = await sendMessageToBackground(message);
   
   if (relevantSentences.length === 0) {
-      appendMessage('information is still fetching', 'bot');
+      appendMessage('information is still fetching please wait', 'bot');
+    if(alert){
+      setTimeout(botResponse,1000);
+      alert=false;
+
+    }
   } else {
       console.log(relevantSentences);
-
+      if(!alert){
+              alert=true;
+      }
       // Display the bot's response
       appendMessage_bot(relevantSentences.join('.'), 'bot',title,info);
   }
