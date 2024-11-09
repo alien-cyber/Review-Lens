@@ -252,3 +252,5 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  function send_trigger(){
     chrome.runtime.sendMessage({action:'trigger'},(response)=>{});
 }
+
+
