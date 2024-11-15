@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html>
+  <meta charset="UTF-8">
+
   <head><title>Amazon Review Fetcher</title>
 
     <link rel="stylesheet" href="style.css">
@@ -10,9 +12,16 @@
     <div id="output"></div>
  
       <div class="chat-container">
-          <div class="chat-header">
-              <h3>Chat with reviews</h3>
+        <div class="chat-header"> 
+          <h3 id="head-content">Chat with Reviews</h3>
+          <div class="language-buttons">
+            <button class="active">English</button>
+            <button>Español</button>
+            <button>日本語</button>
+            <!-- Add more language buttons as needed -->
           </div>
+        </div>
+        
           <div class="chat-body" id="chatBody">
               <!-- Messages will be dynamically added here -->
           </div>

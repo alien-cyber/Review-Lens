@@ -28,15 +28,52 @@ body {
 .chat-header {
     background: linear-gradient(135deg, #ff8a65, #ff6ec4);
     color: #ffffff;
-    padding: 10px; /* Reduced padding */
+    padding: 10px;
     text-align: center;
-    font-size: 18px; /* Smaller font size */
+    font-size: 18px;
     font-weight: bold;
     border-top-left-radius: 16px;
     border-top-right-radius: 16px;
     letter-spacing: 1px;
     text-transform: uppercase;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.language-buttons {
+    margin-top: 5px;
+    display: flex;
+    justify-content: center;
+    gap: 8px; /* Space between buttons */
+}
+
+.language-buttons button {
+    background-color: #ffffff;
+    color: #ff6ec4;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.language-buttons button:hover {
+    background-color: #ff6ec4;
+    color: #ffffff;
+}
+
+.language-buttons button:focus {
+    outline: none;
+    box-shadow: 0 0 4px #ffffff;
+}
+
+/* Active button style */
+.language-buttons button.active {
+    background-color: #ff6ec4;
+    color: #ffffff;
+    box-shadow: 0 0 6px rgba(255, 110, 196, 0.5);
 }
 
 
