@@ -2,40 +2,34 @@
 <html>
   <meta charset="UTF-8">
 
-  <head><title>Amazon Review Fetcher</title>
-
+  <head>
+    <title>Amazon Review Fetcher</title>
     <link rel="stylesheet" href="style.css">
-    
   </head>
   <body>
-   
     <div id="output"></div>
- 
-      <div class="chat-container">
-        <div class="chat-header"> 
-          <h3 id="head-content">Chat with Reviews</h3>
-          <div class="language-buttons">
-            <button class="active">English</button>
-            <button>Español</button>
-            <button>日本語</button>
-            <!-- Add more language buttons as needed -->
-          </div>
+
+    <div class="chat-container">
+      <div class="chat-header"> 
+        <h3 id="head-content">Chat with Reviews</h3>
+        <button id="closePopupButton" title="Close Popup">X</button>
+        <div class="language-buttons">
+          <button class="active">English</button>
+          <button>Español</button>
+          <button>日本語</button>
+          <!-- Add more language buttons as needed -->
         </div>
-        
-          <div class="chat-body" id="chatBody">
-              <!-- Messages will be dynamically added here -->
-          </div>
-          <div class="chat-footer">
-              <input type="text" id="messageInput" placeholder="Type your message..." />
-              <button id="sendMessageButton">Send</button>
-          </div>
       </div>
-  
-     
-
+      
+      <div class="chat-body" id="chatBody">
+        <!-- Messages will be dynamically added here -->
+      </div>
+      <div class="chat-footer">
+        <input type="text" id="messageInput" placeholder="Type your message..." />
+        <button id="sendMessageButton">Send</button>
+      </div>
+    </div>
     
+    <script src="popup.js"></script>
   </body>
- <script src="popup.js"></script>
-
-
 </html>

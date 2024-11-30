@@ -205,3 +205,37 @@ body {
     background: linear-gradient(135deg, #ff8a65, #ff6ec4);
     transform: scaleY(1.2);
 }
+
+
+
+
+/* Close Button Styling */
+#closePopupButton {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #ff6ec4, #7873f5);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+#closePopupButton:hover {
+    background: linear-gradient(135deg, #ff8a65, #ff6ec4);
+    transform: scale(1.1);
+}
+
+#closePopupButton:focus {
+    outline: none;
+    box-shadow: 0 0 8px rgba(255, 110, 196, 0.5);
+}

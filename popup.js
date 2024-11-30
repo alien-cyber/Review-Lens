@@ -10,7 +10,13 @@ let translator_output=null;
 
 document.addEventListener('DOMContentLoaded', function () {
 
+  const closeButton = document.getElementById("closePopupButton");
 
+  // Event listener for close button
+  closeButton.addEventListener("click", () => {
+      // Close the popup window
+      window.close();
+  });
 
     async function changeLanguage_input(lang){
       if (lang=='en') {
@@ -314,8 +320,6 @@ async function appendMessage(content, sender) {
 
     // Auto-scroll to the bottom
 }
-
-
 
 
 
