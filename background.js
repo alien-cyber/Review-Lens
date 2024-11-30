@@ -6,7 +6,7 @@ let data = [];
 let title='';
 let model = null;
 let info='';
-let initial=true;
+
 
 let precomputedEmbeddings = []; // Store computed embeddings progressively
 let embeddingInProgress = false;
@@ -15,66 +15,6 @@ const batchSize = 10; // Define batch size
 
 
 
-function checkAndInjectScript(tabId) {
-    chrome.storage.local.set({ precomputedData: []});
-    chrome.storage.local.set({ info: []});
-    chrome.storage.local.set({ title: ""});
-
-    chrome.storage.local.set({data: []});
-
-   
-    initial=true;
-     data = [];
-    title='';
-    
-    info='';
-
-    
-    chrome.storage.local.set({ fetchData: false });
-
-    chrome.tabs.get(tabId, (tab) => {
-        if (chrome.runtime.lastError) {
-            console.error("Error fetching tab:", chrome.runtime.lastError);
-            return;
-        }
-        if (tab && tab.url) {
-            const url = tab.url;
-            const isAmazonProductPage = url.includes("amazon.") && url.includes("/dp/");
-            const isFlipkartProductPage = url.includes("flipkart.com") && url.includes("/p/");
-
-            if (isAmazonProductPage || isFlipkartProductPage) {
-                chrome.storage.local.set({ fetchData: true });
-                chrome.scripting.executeScript({
-                    target: { tabId: tab.id },
-                    files: ['content.js']
-                }, () => {
-                    if (chrome.runtime.lastError) {
-                        console.error("Error injecting script:", chrome.runtime.lastError);
-                    } else {
-                        console.log("Content script injected.");
-                    }
-                });
-            } else {
-                chrome.storage.local.set({ fetchData: false });
-            }
-        }
-    });
-}
-
-// Listener for completed navigation
-chrome.webNavigation.onCompleted.addListener((details) => {
-    checkAndInjectScript(details.tabId);
-}, {
-    url: [
-        { hostContains: "amazon." },
-        { hostContains: "flipkart.com" }
-    ]
-});
-
-// Listener for tab activation (tab change)
-chrome.tabs.onActivated.addListener((activeInfo) => {
-    checkAndInjectScript(activeInfo.tabId);
-});
 
 
 
@@ -123,12 +63,10 @@ async function getRelevantSentences(prompt) {
     if (!promptEmbedding.length) return [];
 
     // Initialize embedding process if not started
-    if (!embeddingInProgress && initial && precomputedEmbeddings.length < data.length ) {
+    if (!embeddingInProgress  && precomputedEmbeddings.length < data.length ) {
         embeddingInProgress = true;
         precomputeInBatches(data, batchSize);
-        if(precomputedEmbeddings.length == data.length){
-            initial=false;
-        } // Start embedding in batches
+    
     }
 
     
@@ -167,7 +105,7 @@ async function precomputeInBatches(data, batchSize) {
         if (precomputedEmbeddings.length >= batchSize) break;
     }
 
-    chrome.storage.local.set({ precomputedData: precomputedEmbeddings });
+    
     embeddingInProgress = false; // Mark as complete if all data is embedded
 }
 
@@ -294,35 +232,22 @@ async function embed_check() {
 // Initialize the model on script load
 loadModel();
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.type === "loadData") {
-        chrome.storage.local.get("precomputedData", (result) => {
-          
-            precomputedEmbeddings = result.precomputedData || [];
-        });    
-        chrome.storage.local.get("info", (result) => {
-            
-            info= result.info || [];
-        }); 
-        chrome.storage.local.get("data", (result) => {
-            
-        data = result.data || [];
-        }); 
-        chrome.storage.local.get("title", (result) => {
-            
-            title = result.title || "";
-        }); 
-
+    if (request.type === "reset") {
+             data=[];
+             precomputedEmbeddings=[];   
     }
   if (request.type === "data") {
+    
+
       data=request.data;
-    chrome.storage.local.set({ data: data});
+
 
       title=request.title;
-    chrome.storage.local.set({ title: title});
+ 
 
       info=request.productinfo;
       console.log('info',info);
-    chrome.storage.local.set({ info: info});
+   
 
       embed_check();
     //   send_trigger();
@@ -335,5 +260,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 //  function send_trigger(){
 //     chrome.runtime.sendMessage({action:'trigger'},(response)=>{});
 // }
-
 

@@ -1,5 +1,7 @@
 console.log("Content script is running");
-let url=window.location.href;
+
+
+ url=window.location.href;
 if (url.includes("amazon.com")||url.includes("amazon.in")){
           url=url.replace(/\/dp\//g, "/product-reviews/");
 }
