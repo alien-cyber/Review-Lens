@@ -6,8 +6,77 @@ let data = [];
 let title='';
 let model = null;
 let info='';
+let initial=true;
 
-console.log("Background script is running");
+let precomputedEmbeddings = []; // Store computed embeddings progressively
+let embeddingInProgress = false;
+const batchSize = 10; // Define batch size
+
+
+
+
+function checkAndInjectScript(tabId) {
+    chrome.storage.local.set({ precomputedData: []});
+    chrome.storage.local.set({ info: []});
+    chrome.storage.local.set({ title: ""});
+
+    chrome.storage.local.set({data: []});
+
+   
+    initial=true;
+     data = [];
+    title='';
+    
+    info='';
+
+    
+    chrome.storage.local.set({ fetchData: false });
+
+    chrome.tabs.get(tabId, (tab) => {
+        if (chrome.runtime.lastError) {
+            console.error("Error fetching tab:", chrome.runtime.lastError);
+            return;
+        }
+        if (tab && tab.url) {
+            const url = tab.url;
+            const isAmazonProductPage = url.includes("amazon.") && url.includes("/dp/");
+            const isFlipkartProductPage = url.includes("flipkart.com") && url.includes("/p/");
+
+            if (isAmazonProductPage || isFlipkartProductPage) {
+                chrome.storage.local.set({ fetchData: true });
+                chrome.scripting.executeScript({
+                    target: { tabId: tab.id },
+                    files: ['content.js']
+                }, () => {
+                    if (chrome.runtime.lastError) {
+                        console.error("Error injecting script:", chrome.runtime.lastError);
+                    } else {
+                        console.log("Content script injected.");
+                    }
+                });
+            } else {
+                chrome.storage.local.set({ fetchData: false });
+            }
+        }
+    });
+}
+
+// Listener for completed navigation
+chrome.webNavigation.onCompleted.addListener((details) => {
+    checkAndInjectScript(details.tabId);
+}, {
+    url: [
+        { hostContains: "amazon." },
+        { hostContains: "flipkart.com" }
+    ]
+});
+
+// Listener for tab activation (tab change)
+chrome.tabs.onActivated.addListener((activeInfo) => {
+    checkAndInjectScript(activeInfo.tabId);
+});
+
+
 
 
 
@@ -41,9 +110,6 @@ function cosineSimilarity(A, B) {
     return dotProduct / (magnitudeA * magnitudeB);
 }
 
-let precomputedEmbeddings = []; // Store computed embeddings progressively
-let embeddingInProgress = false;
-const batchSize = 10; // Define batch size
 
 async function getRelevantSentences(prompt) {
     if (!model) {
@@ -57,11 +123,15 @@ async function getRelevantSentences(prompt) {
     if (!promptEmbedding.length) return [];
 
     // Initialize embedding process if not started
-    if (!embeddingInProgress && precomputedEmbeddings.length < data.length) {
+    if (!embeddingInProgress && initial && precomputedEmbeddings.length < data.length ) {
         embeddingInProgress = true;
-        precomputeInBatches(data, batchSize); // Start embedding in batches
+        precomputeInBatches(data, batchSize);
+        if(precomputedEmbeddings.length == data.length){
+            initial=false;
+        } // Start embedding in batches
     }
 
+    
     // Wait for initial embeddings to be ready
     await waitForInitialEmbeddings(batchSize);
 
@@ -97,6 +167,7 @@ async function precomputeInBatches(data, batchSize) {
         if (precomputedEmbeddings.length >= batchSize) break;
     }
 
+    chrome.storage.local.set({ precomputedData: precomputedEmbeddings });
     embeddingInProgress = false; // Mark as complete if all data is embedded
 }
 
@@ -203,20 +274,7 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
         }
         
     }
-    if(request.action==='getTitle'){
-        
-        
-       
-
-        try {
-             console.log('rec',title);
-           
-            sendResponse({ title });
-        } catch (error) {
-            console.error('Error processing the message:', error);
-            sendResponse({ title: '' });
-        }
-    }
+   
 
     return true; // Indicate asynchronous response
 });
@@ -236,11 +294,36 @@ async function embed_check() {
 // Initialize the model on script load
 loadModel();
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.type === "loadData") {
+        chrome.storage.local.get("precomputedData", (result) => {
+          
+            precomputedEmbeddings = result.precomputedData || [];
+        });    
+        chrome.storage.local.get("info", (result) => {
+            
+            info= result.info || [];
+        }); 
+        chrome.storage.local.get("data", (result) => {
+            
+        data = result.data || [];
+        }); 
+        chrome.storage.local.get("title", (result) => {
+            
+            title = result.title || "";
+        }); 
+
+    }
   if (request.type === "data") {
       data=request.data;
+    chrome.storage.local.set({ data: data});
+
       title=request.title;
+    chrome.storage.local.set({ title: title});
+
       info=request.productinfo;
       console.log('info',info);
+    chrome.storage.local.set({ info: info});
+
       embed_check();
     //   send_trigger();
       
