@@ -5,7 +5,6 @@ let targetlanguage='en';
 let alert=true;
 let translator_input=null;
 let translator_output=null;
-let last_url="";
 
 
 
@@ -75,12 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
           } else if (url.includes("flipkart.com") && url.includes("/p/")) {
               shouldInjectScript = true;
           } 
-          if(url!=last_url){
-            chrome.runtime.sendMessage({ type: "reset"}, (response) => {
-       
-            });
-          }
-
+         
       
           // Inject content script only if the flag is set to true
           if (shouldInjectScript) {
@@ -228,7 +222,7 @@ async function botResponse() {
     if(alert){
 
     
-      setTimeout(botResponse,10000);
+      setTimeout(botResponse,25000);
       alert=false;
     }
     

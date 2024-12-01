@@ -12,9 +12,48 @@ let precomputedEmbeddings = []; // Store computed embeddings progressively
 let embeddingInProgress = false;
 const batchSize = 10; // Define batch size
 
+let last_url="";
 
+function checkAndInjectScript(tabId) {
+   
+    chrome.tabs.get(tabId, (tab) => {
+      if (chrome.runtime.lastError) {
+          console.error("Error fetching tab:", chrome.runtime.lastError);
+          return;
+      }
+      if (tab && tab.url) {
+          const url = tab.url;
+          const isAmazonProductPage = url.includes("amazon.") && url.includes("/dp/");
+          const isFlipkartProductPage = url.includes("flipkart.com") && url.includes("/p/");
 
+          if (isAmazonProductPage || isFlipkartProductPage) {
+              if(url!=last_url){
+                  if(last_url==""){
+                     last_url=url;
+              
+                  }
+                  else{
+                      console.log("reset reset");
+                      data=[];
+                      precomputedEmbeddings=[];   
+                
+                }
+                last_url=url;
 
+                }
+          } 
+      }
+  });
+}
+
+chrome.webNavigation.onCompleted.addListener((details) => {
+  checkAndInjectScript(details.tabId);
+});
+
+// Listener for tab activation (tab change)
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  checkAndInjectScript(activeInfo.tabId);
+});
 
 
 
@@ -63,10 +102,10 @@ async function getRelevantSentences(prompt) {
     if (!promptEmbedding.length) return [];
 
     // Initialize embedding process if not started
-    if (!embeddingInProgress  && precomputedEmbeddings.length < data.length ) {
+    if (!embeddingInProgress && precomputedEmbeddings.length < data.length ) {
         embeddingInProgress = true;
         precomputeInBatches(data, batchSize);
-    
+     // Start embedding in batches
     }
 
     
@@ -105,7 +144,7 @@ async function precomputeInBatches(data, batchSize) {
         if (precomputedEmbeddings.length >= batchSize) break;
     }
 
-    
+  
     embeddingInProgress = false; // Mark as complete if all data is embedded
 }
 
@@ -150,7 +189,7 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
             }
 
             for (let page = 1; page <= maxPages; page++) {
-                const pageUrl = `${url}&${pageParam}=${page}`;
+                const pageUrl =` ${url}&${pageParam}=${page}`;
                 console.log(`Fetching page ${page} from: ${pageUrl}`);
                 
                 try {
@@ -164,7 +203,7 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
                     }
                     
                     const reviewData = await response.text();
-                    console.log(`Fetched review data for page ${page}:`, reviewData);
+                    console.log(`Fetched review data for page ${page}:, reviewData`);
                     allReviews += reviewData; // Append review data to allReviews
                     
                     // Check if the next page exists
@@ -173,7 +212,7 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
                         break;
                     }
                 } catch (error) {
-                    console.error(`Error fetching page ${page} reviews:`, error);
+                    console.error(`Error fetching page ${page} reviews:, error`);
                     break; // Stop fetching if there’s an error
                 }
             }
@@ -182,13 +221,14 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 
         // Function to check if a next page exists in the HTML content
         function nextPageExists(htmlContent) {
-            // Adjust this condition to match each website's "Next" button or pagination element
-            if (request.url.includes("amazon") && htmlContent.includes("Next")) {
-                return true; // Example condition for Amazon
-            } else if (request.url.includes("flipkart") && htmlContent.includes("NEXT")) {
-                return true; // Example condition for Flipkart
+            const lowerCaseContent = htmlContent.toLowerCase();
+        
+            if (request.url.includes("amazon") && lowerCaseContent.includes("next")) {
+                return true;
+            } else if (request.url.includes("flipkart") && lowerCaseContent.includes("next")) {
+                return true;
             }
-            return false; // Default: assume no more pages
+            return false;
         }
         
 
@@ -232,22 +272,17 @@ async function embed_check() {
 // Initialize the model on script load
 loadModel();
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.type === "reset") {
-             data=[];
-             precomputedEmbeddings=[];   
-    }
+   
   if (request.type === "data") {
+      data=request.data;
     
 
-      data=request.data;
-
-
       title=request.title;
- 
+
 
       info=request.productinfo;
       console.log('info',info);
-   
+
 
       embed_check();
     //   send_trigger();
@@ -255,9 +290,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } 
   return true;
   });
-
-
-//  function send_trigger(){
-//     chrome.runtime.sendMessage({action:'trigger'},(response)=>{});
-// }
 
