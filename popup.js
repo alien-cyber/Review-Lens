@@ -8,6 +8,7 @@ let translator_output=null;
 
 
 
+
 document.addEventListener('DOMContentLoaded', function () {
 
   const closeButton = document.getElementById("closePopupButton");
@@ -57,36 +58,61 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     
-   
-        
-   
-        
-    
-    
+  
 
         
-        
+   
+    window.onload=()=>{
+  
 
-    window.onload = () => {
-      chrome.runtime.sendMessage({ type: 'loadData'}, (response) => {
-       
-      });
-    
-      chrome.storage.local.get("fetchData", (result) => {
-          if (result.fetchData) {
-            
-            setTimeout(()=>{appendMessage('why to buy this product and why not', 'bot');
-              appendMessage_bot('data is currently fetched please wait','user','title','info');
-               botResponse();
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          const activeTab = tabs[0];
+          const url = activeTab.url;
+          let shouldInjectScript = false;
+      
+          // Check if the URL is a product page for each specific domain
+          if ((url.includes("amazon.in") || url.includes("amazon.com")) && url.includes("/dp/")) {
+              shouldInjectScript = true;
+          } else if (url.includes("flipkart.com") && url.includes("/p/")) {
+              shouldInjectScript = true;
+          } 
+        
+        
+          // Inject content script only if the flag is set to true
+          if (shouldInjectScript) {
               
-              },500)
-
+      
+              chrome.scripting.executeScript({
+                  target: { tabId: activeTab.id },
+                  files: ['content.js']
+              }, () => {
+                  console.log("Content script injected on product page");
+                  setTimeout(()=>{appendMessage('why to buy this product and why not', 'bot');
+                    appendMessage_bot('data is currently fetched please wait','user','title','info');
+                     botResponse();
+                    
+                    },500)
+                  
+              });
+      
           } else {
-              appendMessage_bot("The popup works only on Amazon or Flipkart product pages.", "user");
+              let str='the POPUP works in a product page of the website';
+              appendMessage_bot(str,'user');
+           
+              console.log("Content script not injected, not a product page or URL does not match.");
           }
       });
-  };
   
+  
+  }
+    
+    
+    
+
+        
+        
+
+   
       
 
     
@@ -320,7 +346,6 @@ async function appendMessage(content, sender) {
 
     // Auto-scroll to the bottom
 }
-
 
 
 
