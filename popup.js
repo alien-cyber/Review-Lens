@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
      
         // const translatorCapabilities = await self.ai.translator.capabilities();
         //   const canTranslate = await translatorCapabilities.languagePairAvailable({sourceLanguage:lang,targetLanguage:'en'});
-         let canTranslate='readily';
+          const canTranslate =await translation.canTranslate({sourceLanguage:lang,targetLanguage:'en'});
           if (canTranslate !== 'no') {
             if (canTranslate !== "after-download") {
                 
