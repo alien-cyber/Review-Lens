@@ -1,5 +1,5 @@
 #  Review-Lens
-Don't spend hours reading reviews instead use this extension.Google's Built this with Prompt API ,Translator API and universal-sentence-encoder from tensorflow.js
+Don't spend hours reading reviews instead use this extension. Built this with Google's Prompt API ,Translator API and universal-sentence-encoder from tensorflow.js
 
 [Watch the Demo ](https://www.youtube.com/watch?v=r6EG5Z9dVsc&ab_channel=Nanthakumar)
 
