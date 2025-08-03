@@ -3,6 +3,8 @@ Don't spend hours reading reviews instead use this extension.Google's Built this
 
 [Watch the Demo ](https://www.youtube.com/watch?v=r6EG5Z9dVsc&ab_channel=Nanthakumar)
 
+![Alt text](screenshot_revivelens.png)
+
 # Installations
 
 ## 1.Install Gemini Nano and enable translation api and download spanish-englishandjapanese-english pair.
