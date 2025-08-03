@@ -3,7 +3,7 @@ Don't spend hours reading reviews instead use this extension.Google's Built this
 
 [Watch the Demo ](https://www.youtube.com/watch?v=r6EG5Z9dVsc&ab_channel=Nanthakumar)
 
-![Alt text](screenshot_revivelens.png)
+![product_image](screenshot_reviewlens.png)
 
 # Installations
 
